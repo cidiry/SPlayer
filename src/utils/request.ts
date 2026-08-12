@@ -35,13 +35,10 @@ server.interceptors.request.use(
       request.params.cookie = cookie;
     }
     // 自定义 realIP
-    if (settingStore.useRealIP) {
-      if (settingStore.realIP) {
-        request.params.realIP = settingStore.realIP;
-      } else {
-        request.params.randomCNIP = true;
-      }
+    if (settingStore.useRealIP && settingStore.realIP) {
+      request.params.realIP = settingStore.realIP;
     }
+    request.params.randomCNIP = true;
     // proxy
     if (settingStore.proxyProtocol !== "off") {
       const protocol = settingStore.proxyProtocol.toLowerCase();
