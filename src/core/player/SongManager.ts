@@ -233,8 +233,8 @@ class SongManager {
     const playbackUrl = isElectron
       ? normalizedUrl
       : `/api/music?url=${encodeURIComponent(normalizedUrl)}`;
-    // 若为试听且未开启试听播放，则将 url 置为空，仅标记为试听
-    const finalUrl = isTrial && !settingStore.playSongDemo ? null : playbackUrl;
+    // 未登录试听且未开启试听播放时，忽略播放地址
+    const finalUrl = isTrial && !settingStore.playSongDemo && !isLogin() ? null : playbackUrl;
 
     // 获取音质：如果请求的是杜比，直接使用杜比音质，否则从返回数据判断
     let quality: QualityType | undefined;
@@ -381,7 +381,7 @@ class SongManager {
         this.prefetchCover(nextSong);
         lyricManager.prefetchLyric(nextSong);
         const { url, isTrial, quality } = await this.getOnlineUrl(nextSong.id, false);
-        if (url && !isTrial) {
+        if (url && (!isTrial || settingStore.playSongDemo || isLogin())) {
           this.nextPrefetch = {
             id: nextSong.id,
             url,
@@ -435,7 +435,7 @@ class SongManager {
       const canUnlock = isElectron && nextSong.type !== "radio" && settingStore.useSongUnlock;
       // 先请求官方地址
       const { url: officialUrl, isTrial, quality } = await this.getOnlineUrl(songId, false);
-      if (officialUrl && !isTrial) {
+      if (officialUrl && (!isTrial || settingStore.playSongDemo || isLogin())) {
         // 官方可播放且非试听
         this.nextPrefetch = {
           id: songId,
@@ -555,8 +555,8 @@ class SongManager {
       // 尝试获取官方链接
       const { url: officialUrl, isTrial, quality } = await this.getOnlineUrl(songId, !!song.pc);
       // 如果官方链接有效且非试听（或者用户接受试听）
-      if (officialUrl && (!isTrial || (isTrial && settingStore.playSongDemo))) {
-        if (isTrial) window.$message.warning("当前歌曲仅可试听");
+      if (officialUrl && (!isTrial || settingStore.playSongDemo || isLogin())) {
+        if (isTrial && !isLogin()) window.$message.warning("当前歌曲仅可试听");
         return { id: songId, url: officialUrl, quality, isUnlocked: false, source: "official" };
       }
       // 如果官方失败（或被跳过），且未强制指定 auto (或者指定了 auto 但允许回退 - 即 Auto 模式)

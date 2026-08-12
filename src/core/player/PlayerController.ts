@@ -339,6 +339,11 @@ class PlayerController {
     } catch (error) {
       if (requestToken === this.currentRequestToken) {
         console.error("❌ 播放初始化失败:", error);
+        if (error instanceof Error && error.message === "AUDIO_SOURCE_EMPTY") {
+          window.$message.warning("当前歌曲暂无可播放链接，请在设置中开启“播放试听”");
+          statusStore.playLoading = false;
+          return;
+        }
         this.handlePlaybackError(undefined);
       }
     }
