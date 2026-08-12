@@ -230,8 +230,11 @@ class SongManager {
           .replace(/^http:/, "https:")
           .replace(/m804\.music\.126\.net/g, "m801.music.126.net")
           .replace(/m704\.music\.126\.net/g, "m701.music.126.net");
+    const playbackUrl = isElectron
+      ? normalizedUrl
+      : `/api/music?url=${encodeURIComponent(normalizedUrl)}`;
     // 若为试听且未开启试听播放，则将 url 置为空，仅标记为试听
-    const finalUrl = isTrial && !settingStore.playSongDemo ? null : normalizedUrl;
+    const finalUrl = isTrial && !settingStore.playSongDemo ? null : playbackUrl;
 
     // 获取音质：如果请求的是杜比，直接使用杜比音质，否则从返回数据判断
     let quality: QualityType | undefined;
